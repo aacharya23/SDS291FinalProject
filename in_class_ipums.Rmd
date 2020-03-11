@@ -1,0 +1,94 @@
+---
+title: "ipums"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ipumsr)
+library(tidyverse)
+library(mosaic)
+library(skimr)
+```
+
+```{r}
+# Note that you can pass in the loaded DDI into the `read_ipums_micro()`
+usa_ddi <- read_ipums_ddi("usa_00003.xml")
+usa_data <- read_ipums_micro(usa_ddi, verbose = FALSE)
+
+#Finding the variables that have a label
+usa_data %>%
+  select_if(is.labelled)
+
+# Convert the labels to factors (and drop the unused levels)
+usa_data2 <- usa_data %>%
+  mutate(sex_factor = droplevels(as_factor(SEX)),
+         age_factor = droplevels(as_factor(AGE)),
+         marital_factor = droplevels(as_factor(MARST)),
+         newchild_factor = droplevels(as_factor(FERTYR)),
+         race_factor = droplevels(as_factor(RACE)),
+         hispan_factor = droplevels(as_factor(HISPAN)),
+         educ_factor = droplevels(as_factor(EDUC)),
+         hinsur_factor = droplevels(as_factor(HCOVANY)),
+         degfield_factor = droplevels(as_factor(DEGFIELD)),
+         empstat_factor = droplevels(as_factor(EMPSTAT)),
+         occ_factor = droplevels(as_factor(OCC)),
+         ind_factor = droplevels(as_factor(IND)),
+         diffmob_factor = droplevels(as_factor(DIFFMOB)),
+         diffcare_factor = droplevels(as_factor(DIFFCARE)),
+         vetstat_factor = droplevels(as_factor(VETSTAT)),
+         pwstate_factor = droplevels(as_factor(PWSTATE2)),
+         tranwork_factor = droplevels(as_factor(TRANWORK)),
+         trantime_factor = droplevels(as_factor(TRANTIME)),
+  )
+```
+
+## Exercises 1-3
+```{r}
+usa_data2 <- usa_data2 %>%
+  mutate(employed_now = if_else(empstat_factor %in% c("Employed"), "Yes", "No"),
+         recent_child = if_else(newchild_factor %in% c("Yes"), "Yes", "No"),
+         stem_field = if_else(degfield_factor %in% c("Engineering", "Environment and Natural Resources", "Architecture", "Medical and Health Sciences and Services", "Psychology", "Computer and Information Sciences", "Biology and Life Sciences", "Social Sciences", "Mathematics and Statistics", "Physical Sciences", "Agriculture"), "Yes", "No")
+         )
+usa_data2
+```
+
+## Exercise 4
+```{r}
+usa_data2 <- usa_data2 %>%
+  filter(employed_now == "Yes")
+usa_data2
+```
+
+## Excercise 5
+```{r}
+usa_data2 <- usa_data2 %>%
+  select(sex_factor, age_factor, trantime_factor, employed_now, recent_child, stem_field)
+usa_data2
+```
+
+## Exercise 6
+```{r}
+str(usa_data2)
+```
+
+## Exercise 7
+```{r}
+favstats(~ age_factor, data = usa_data2)
+tally(~ sex_factor, data = usa_data2)
+```
+
+## Exercise 8
+```{r}
+skim(usa_data2)
+```
+
+## Exercise 9
+(what do you mean by evaluate each variable...?)
+
+## Exercise 10
+```{r}
+traveltime_v_age <- ggplot(usa_data2, aes(x = age_factor, y = trantime_factor)) +
+  geom_point()
+traveltime_v_age
+```
